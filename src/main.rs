@@ -35,7 +35,7 @@ fn main() {
         }
     }
 
-    result.print(args);
+    println!("{}", result.format(args));
 }
 
 fn get_content(file_path: &Option<String>) -> String {
@@ -65,24 +65,28 @@ struct Result {
 }
 
 impl Result {
-    fn print(&self, args: Args) {
+    fn format(&self, args: Args) -> String {
+        let mut result = String::new();
         if args.c || args.is_default_option_enabled() {
-            print!("{} ", self.byte_size);
+            
+            result = result + format!("{} ", self.byte_size).to_string().as_str();
         }
     
         if args.l || args.is_default_option_enabled() {
-            print!("{} ", self.lines);
+            result = result + format!("{} ", self.lines).to_string().as_str();
         }
     
         if args.w || args.is_default_option_enabled() {
-            print!("{} ", self.words);
+            result = result + format!("{} ", self.words).to_string().as_str();
         }
     
         if args.m {
-            print!("{} ", self.characters);
+            result = result + format!("{} ", self.characters).to_string().as_str();
         }
     
-        println!("{}", args.path.unwrap_or("".to_string()));
+        result = result + format!("{}", args.path.unwrap_or("".to_string())).to_string().as_str();
+
+        result
     }
     
 }
