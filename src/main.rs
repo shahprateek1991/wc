@@ -1,82 +1,45 @@
 use std::{fs, io};
 
+use args::Args;
 use clap::Parser;
 
-/// Simple program to greet a person
-#[derive(Parser, Debug)]
-#[command(author, version, about, long_about = None)]
-struct Args {
-    /// Name of the person to greet
-    #[arg(short, long, action = clap::ArgAction::SetTrue)]
-    c: bool,
-
-    #[arg(short, long, action = clap::ArgAction::SetTrue)]
-    l: bool,
-
-    #[arg(short, long, action = clap::ArgAction::SetTrue)]
-    w:bool,
-
-    #[arg(short, long, action = clap::ArgAction::SetTrue)]
-    m: bool,
-
-    #[arg()]
-    path: Option<String>,
-}
+mod args;
 
 fn main() {
     let args = Args::parse();
 
-    let content = get_content(&args);
+    let content = get_content(&args.path);
 
-    let default_option:bool = !(args.c || args.l || args.w) && !args.m;
+    let mut result = Result {
+        byte_size: 0,
+        lines: 0,
+        words: 0,
+        characters: 0,
+    };
 
-    let mut byte_size:usize = 0; let mut lines:usize = 0; let mut words:usize = 0; let mut characters:usize = 0;
-
-    if args.c || default_option {
-        byte_size = content.len();
+    if args.c || args.is_default_option_enabled() {
+        result.byte_size = content.len();
     }
 
     for line in content.lines() {
-        if args.l || default_option {
-            lines = lines + 1;
+        if args.l || args.is_default_option_enabled() {
+            result.lines = result.lines + 1;
         }
 
-        if args.w || default_option {
-            words = words + line.split_whitespace().count();
-            
+        if args.w || args.is_default_option_enabled() {
+            result.words = result.words + line.split_whitespace().count();
         }
 
         if args.m {
-            characters = characters + line.chars().count();
-            
+            result.characters = result.characters + line.chars().count();
         }
     }
 
-    if args.c || default_option {
-        print!("{} ", byte_size);
-        
-    }
-
-    if args.l || default_option {
-        print!("{} ", lines);
-        
-    }
-
-    if args.w || default_option {
-        print!("{} ", words);
-        
-    }
-
-    if args.m {
-        print!("{} ", characters);
-        
-    }
-
-    println!("{}", args.path.unwrap_or("".to_string()));
+    result.print(args);
 }
 
-fn get_content(args: &Args) -> String {
-    let content = match args.path {
+fn get_content(file_path: &Option<String>) -> String {
+    let content = match file_path {
         Some(ref file_name) => {
             fs::read_to_string(file_name).expect("Should have been able to read the file")
         }
@@ -92,4 +55,34 @@ fn get_content_from_std_input() -> String {
         s.push_str("\n");
     }
     s
+}
+
+struct Result {
+    byte_size: usize,
+    lines: usize,
+    words: usize,
+    characters: usize,
+}
+
+impl Result {
+    fn print(&self, args: Args) {
+        if args.c || args.is_default_option_enabled() {
+            print!("{} ", self.byte_size);
+        }
+    
+        if args.l || args.is_default_option_enabled() {
+            print!("{} ", self.lines);
+        }
+    
+        if args.w || args.is_default_option_enabled() {
+            print!("{} ", self.words);
+        }
+    
+        if args.m {
+            print!("{} ", self.characters);
+        }
+    
+        println!("{}", args.path.unwrap_or("".to_string()));
+    }
+    
 }
